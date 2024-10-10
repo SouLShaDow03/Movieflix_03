@@ -1,0 +1,25 @@
+# Ignore dependencies
+movieflix_frontend/node_modules/
+movieflix_backend/node_modules/
+
+# Ignore environment variables
+movieflix_frontend/.env
+movieflix_backend/.env
+
+# Ignore build output
+movieflix_frontend/build/
+movieflix_backend/build/
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor-related files
+.vscode/
+.idea/
+*.log
+
+# Ignore miscellaneous logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
