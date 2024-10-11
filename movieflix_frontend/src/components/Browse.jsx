@@ -114,7 +114,7 @@ const Browse = () => {
     accumulatedMovies = [],
   ) => {
     try {
-      const url = `/api/movies?genre=${id}&page=${page}`;
+      const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movies?genre=${id}&page=${page}`;
       const response = await fetch(url);
       if (!response.ok) {
         // Log the status code and the response text for debugging
@@ -168,17 +168,26 @@ const Browse = () => {
   useEffect(() => {
     const page = 1;
     fetchData(
-      `/api/movie/now_playing/${page}`,
+      `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/now_playing/${page}`,
       moviesActions.setNowPlayingMovies,
     );
     // fetchData(requests.fetchTrendingWeek, moviesActions.setTrendingMovies);
     fetchTrendingMovies(
-      `/api/trending/movie/week/${page}`,
+      `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/trending/movie/week/${page}`,
       moviesActions.setTrendingMovies,
     );
-    fetchData(`/api/movie/indian/${page}`, moviesActions.setIndianMovies);
-    fetchData(`/api/movie/marathi/${page}`, moviesActions.setMarathiMovies);
-    fetchData(`/api/trending/tv/day`, moviesActions.setTrendingTvShows);
+    fetchData(
+      `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/indian/${page}`,
+      moviesActions.setIndianMovies,
+    );
+    fetchData(
+      `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/marathi/${page}`,
+      moviesActions.setMarathiMovies,
+    );
+    fetchData(
+      `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/trending/tv/day`,
+      moviesActions.setTrendingTvShows,
+    );
     fetchMoviesByGenre(28, moviesActions.setActionMovies);
     fetchMoviesByGenre(16, moviesActions.setAnimationMovies);
     fetchMoviesByGenre(9648, moviesActions.setMysteryMovies);

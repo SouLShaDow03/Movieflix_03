@@ -68,10 +68,10 @@ const DiscoverPage = () => {
       // TV Shows Logic
       if (type.toLowerCase().trim() === "tv") {
         if (genreNumber) {
-          url = `/api/tv?genre=${genreNumber}&page=${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv?genre=${genreNumber}&page=${pageParam}`;
           console.log("Fetching TV data with genre:", genreNumber, "URL:", url);
         } else if (query) {
-          url = `/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
           console.log("Fetching TV data with query:", query, "URL:", url);
         } else {
           throw new Error("No genre or query provided for TV shows");
@@ -85,10 +85,10 @@ const DiscoverPage = () => {
         type === ""
       ) {
         if (query) {
-          url = `/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
           console.log("Fetching Movie data with query:", query, "URL:", url);
         } else if (genreNumber) {
-          url = `/api/movies?genre=${genreNumber}&page=${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movies?genre=${genreNumber}&page=${pageParam}`;
           console.log(
             "Fetching Movie data with genre:",
             genreNumber,
@@ -96,16 +96,16 @@ const DiscoverPage = () => {
             url,
           );
         } else if (queryMovies === "NowPlaying") {
-          url = `/api/movie/now_playing/${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/now_playing/${pageParam}`;
           console.log("Fetching Now Playing movies, URL:", url);
         } else if (queryMovies === "Trending") {
-          url = `/api/trending/movie/week/${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/trending/movie/week/${pageParam}`;
           console.log("Fetching Trending movies, URL:", url);
         } else if (queryMovies === "Indian") {
-          url = `/api/movie/indian/${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/indian/${pageParam}`;
           console.log("Fetching Indian movies, URL:", url);
         } else if (queryMovies === "Marathi") {
-          url = `/api/movie/marathi/${pageParam}`;
+          url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/marathi/${pageParam}`;
           console.log("Fetching Marathi movies, URL:", url);
         } else {
           throw new Error("No query or genre provided for Movies");

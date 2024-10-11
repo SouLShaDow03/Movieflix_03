@@ -89,7 +89,7 @@ const MovieModal = ({
   }, [isFirebaseMovie]);
 
   const getOmdbData = async (title, year) => {
-    const url = `/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(
+    const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(
       year,
     )}`;
     try {
@@ -159,7 +159,7 @@ const MovieModal = ({
             movie.first_air_date !== undefined ||
             !movie.media_type
           ) {
-            const endpoint = `/api/tv/${movie.id}`;
+            const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
             return endpoint;
           }
@@ -169,11 +169,11 @@ const MovieModal = ({
             movie.media_type === "series" ||
             movie.first_air_date !== undefined
           ) {
-            const endpoint = `/api/tv/${movie.id}`;
+            const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
             return endpoint;
           } else {
-            const endpoint = `/api/movie/${movie.id}`;
+            const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/${movie.id}`;
             searchParams.append("type", "movies");
             return endpoint;
           }
@@ -221,8 +221,8 @@ const MovieModal = ({
         movie.media_type === "tv" ||
         movie.media_type === "series" ||
         movie.first_air_date !== undefined
-          ? `/api/tv/${movie.id}/recommendations`
-          : `/api/movie/${movie.id}/recommendations`;
+          ? `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv/${movie.id}/recommendations`
+          : `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/${movie.id}/recommendations`;
       const response = await fetch(endpoint);
       if (!response.ok) {
         // Log the status code and the response text for debugging
@@ -381,7 +381,7 @@ const MovieModal = ({
   };
 
   const getVideoData = async (videoDataId) => {
-    const url = `/api/${currentType}/${videoDataId}/videos`;
+    const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/${currentType}/${videoDataId}/videos`;
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");

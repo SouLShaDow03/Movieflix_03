@@ -87,7 +87,7 @@ const MoviesCarousel = ({
     }
   };
   const getVideoData = async (videoDataId) => {
-    const url = `/api/${currentType}/${videoDataId}/videos`;
+    const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/${currentType}/${videoDataId}/videos`;
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");

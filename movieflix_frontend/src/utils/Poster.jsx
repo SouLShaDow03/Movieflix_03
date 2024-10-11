@@ -15,7 +15,7 @@ const Poster = ({ movie = {}, movieId }) => {
     // if (!movieId || Object.keys(movie).length > 0) return;
     try {
       setLoading(true); // Trigger loading while fetching
-      const url = `/api/movie/${movieId}`;
+      const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/${movieId}`;
       const response = await fetch(url);
       if (!response.ok) {
         // Log the status code and the response text for debugging

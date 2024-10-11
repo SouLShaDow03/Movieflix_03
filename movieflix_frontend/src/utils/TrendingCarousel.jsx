@@ -41,7 +41,7 @@ const TrendingCarousel = ({ type = "movie" }) => {
     try {
       // Fetch data from the backend API endpoint
       const response = await fetch(
-        `/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(year)}`,
+        `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(year)}`,
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -60,7 +60,7 @@ const TrendingCarousel = ({ type = "movie" }) => {
   };
 
   const getVideoData = async (type, itemId) => {
-    const url = `/api/${type}/${itemId}/videos`; // Change this to your backend API endpoint
+    const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/${type}/${itemId}/videos`; // Change this to your backend API endpoint
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");
@@ -106,7 +106,9 @@ const TrendingCarousel = ({ type = "movie" }) => {
       try {
         setItems([]);
         const endpoint =
-          type === "movie" ? "/api/trending/movie/day" : "/api/trending/tv/day";
+          type === "movie"
+            ? `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/trending/movie/day`
+            : `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/trending/tv/day`;
         const response = await fetch(endpoint);
         if (!response.ok) {
           // Log the status code and the response text for debugging
