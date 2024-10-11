@@ -45,7 +45,7 @@
     "web-vitals": "^4.2.2"
   },
   "scripts": {
-    "start": "cross-env react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -78,5 +78,6 @@
     "tailwindcss": "^3.4.7",
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "proxy": "http://localhost:5000"
 }

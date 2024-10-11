@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { tmdbInstance, omdbInstance } from "./axios";
 import { Link } from "react-router-dom";
-import { requests } from "./Requests.js";
 import { FaPlay } from "react-icons/fa";
 import { LuBadgeInfo } from "react-icons/lu";
 import imdb_logo from "../assets/images/imdb_logo.png";
@@ -40,38 +38,47 @@ const TrendingCarousel = ({ type = "movie" }) => {
   };
   const handleClose = () => setOpen(false);
   const getOmdbData = async (title, year) => {
-    const url = requests.fetchOmdbData(title, year);
     try {
-      const response = await omdbInstance.get(url);
-      if (response.data) {
-        return {
-          imdbRating: response.data.imdbRating || "N/A",
-          omdbGenres: separateGenres(response.data.Genre) || "N/A",
-          omdbYear: response.data.Year || "N/A",
-        };
+      // Fetch data from the backend API endpoint
+      const response = await fetch(
+        `/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(year)}`,
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
+      const data = await response.json();
+      console.log("TrendingCarousel omdbdata response:", data.results);
+      return {
+        imdbRating: data.imdbRating || "N/A",
+        omdbGenres: separateGenres(data.Genre) || "N/A",
+        omdbYear: data.Year || "N/A",
+      };
     } catch (error) {
-      console.error("Error fetching omdb data : ", error.message);
+      console.error("Error fetching OMDB data:", error.message);
       return { imdbRating: "N/A", omdbGenres: "N/A", omdbYear: "N/A" };
     }
   };
 
-  const getVideoData = async (itemId) => {
-    const url = `/${type}/${itemId}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`;
-    // console.log("video data url : ", url);
+  const getVideoData = async (type, itemId) => {
+    const url = `/api/${type}/${itemId}/videos`; // Change this to your backend API endpoint
     try {
-      const response = await tmdbInstance.get(url);
-      const videos = response.data.results;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const data = await response.json();
+
+      const videos = data.results;
       // Filter for trailers
       const trailer = videos.find(
         (video) => video.type === "Trailer" || video.type === "Teaser",
       );
+
       if (trailer) {
         return {
           youtubeUrl: `https://www.youtube.com/watch?v=${trailer.key}`,
           vidSrcUrl: `https://vidsrc.in/embed/${type}?tmdb=${itemId}`,
         };
       }
+
       // If no trailer, return the first video
       return videos.length > 0
         ? {
@@ -80,7 +87,7 @@ const TrendingCarousel = ({ type = "movie" }) => {
           }
         : { youtubeUrl: null, vidSrcUrl: null };
     } catch (error) {
-      console.error("Error fetching video data : ", error.message);
+      console.error("Error fetching video data:", error.message);
       return { youtubeUrl: null, vidSrcUrl: null };
     }
   };
@@ -99,12 +106,17 @@ const TrendingCarousel = ({ type = "movie" }) => {
       try {
         setItems([]);
         const endpoint =
-          type === "movie"
-            ? requests.fetchTrendingToday
-            : requests.fetchTrendingTVShowsToday;
-        const response = await tmdbInstance.get(endpoint);
-        if (Array.isArray(response.data.results)) {
-          const shuffledItems = shuffleArray(response.data.results).slice(0, 6);
+          type === "movie" ? "/api/trending/movie/day" : "/api/trending/tv/day";
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          // Log the status code and the response text for debugging
+          const errorText = await response.text(); // Get the raw response text
+          console.error("Error fetching data:", response.status, errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json(); // Await the JSON parsing
+        if (Array.isArray(data.results)) {
+          const shuffledItems = shuffleArray(data.results).slice(0, 6);
           const itemsWithAdditonalData = await Promise.all(
             shuffledItems.map(async (item) => {
               const year = extractYear(

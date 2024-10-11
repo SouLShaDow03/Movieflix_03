@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useCallback } from "react";
 import MovieModal from "./MovieModal";
-import { tmdbInstance } from "./axios";
-import { requests } from "./Requests";
 import SkeletonLoader from "./SkeletonLoader"; // Import SkeletonLoader component
 
 const Poster = ({ movie = {}, movieId }) => {
@@ -17,9 +15,17 @@ const Poster = ({ movie = {}, movieId }) => {
     // if (!movieId || Object.keys(movie).length > 0) return;
     try {
       setLoading(true); // Trigger loading while fetching
-      const url = requests.fetchMovieDetail(movieId);
-      const response = await tmdbInstance.get(url);
-      setMovieData(response.data);
+      const url = `/api/movie/${movieId}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      // console.log("Movie data : ", data);
+      setMovieData(data);
     } catch (error) {
       console.error("Error fetching data: ", error);
     } finally {

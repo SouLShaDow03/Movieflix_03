@@ -6,8 +6,6 @@ import TrendingCarousel from "../utils/TrendingCarousel.jsx";
 import MoviesCarousel from "../utils/MoviesCarousel.jsx";
 import Poster from "../utils/Poster.jsx";
 import { MdArrowForwardIos } from "react-icons/md";
-import { requests } from "../utils/Requests.js";
-import { tmdbInstance } from "../utils/axios";
 import * as moviesActions from "../utils/Redux/moviesSlice.js";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Mousewheel } from "swiper/modules";
@@ -69,16 +67,22 @@ const Browse = () => {
       }
     };
 
-      fetchFirebaseMovies();
-    
+    fetchFirebaseMovies();
   }, []);
 
   // Fetch and process data function
   const fetchData = async (url, action) => {
     try {
-      const newUrl = url;
-      const response = await tmdbInstance.get(newUrl);
-      const shuffledMovies = shuffleArray(response.data.results);
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      // console.log("Browse page response:", data);
+      const shuffledMovies = shuffleArray(data.results);
       const uniqueMovies = getUniqueAndFilteredMovies(shuffledMovies);
       dispatch(action(uniqueMovies));
     } catch (error) {
@@ -88,10 +92,15 @@ const Browse = () => {
 
   const fetchTrendingMovies = async (url, action) => {
     try {
-      const response = await tmdbInstance.get(url);
-      const uniqueMovies = getUniqueAndFilteredMovies(
-        (await response).data.results,
-      );
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      const uniqueMovies = getUniqueAndFilteredMovies(data.results);
       dispatch(action(uniqueMovies));
     } catch (error) {
       console.error("Error fetching data: ", error);
@@ -105,17 +114,22 @@ const Browse = () => {
     accumulatedMovies = [],
   ) => {
     try {
-      const url = requests.fetchMovieByGenre(id, page);
-      const response = tmdbInstance.get(url);
-      const uniqueMovies = getUniqueAndFilteredMovies(
-        (await response).data.results,
-      );
+      const url = `/api/movies?genre=${id}&page=${page}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      const uniqueMovies = getUniqueAndFilteredMovies(data.results);
       const combinedMovies = [...accumulatedMovies, ...uniqueMovies];
       dispatch(action(combinedMovies));
       if (combinedMovies.length >= moviesIndex.length) {
         return;
       }
-      if ((await response).data.total_pages > page) {
+      if ((await response.json()).data.total_pages > page) {
         fetchMoviesByGenre(id, action, page + 1, combinedMovies);
       }
     } catch (error) {
@@ -154,23 +168,17 @@ const Browse = () => {
   useEffect(() => {
     const page = 1;
     fetchData(
-      requests.fetchNowPlaying(page),
+      `/api/movie/now_playing/${page}`,
       moviesActions.setNowPlayingMovies,
     );
     // fetchData(requests.fetchTrendingWeek, moviesActions.setTrendingMovies);
     fetchTrendingMovies(
-      requests.fetchTrendingWeek(page),
+      `/api/trending/movie/week/${page}`,
       moviesActions.setTrendingMovies,
     );
-    fetchData(
-      requests.fetchDiscoverIndianMovies(page),
-      moviesActions.setIndianMovies,
-    );
-    fetchData(
-      requests.fetchMarathiMovies(page),
-      moviesActions.setMarathiMovies,
-    );
-    fetchData(requests.fetchTrendingTvShow, moviesActions.setTrendingTvShows);
+    fetchData(`/api/movie/indian/${page}`, moviesActions.setIndianMovies);
+    fetchData(`/api/movie/marathi/${page}`, moviesActions.setMarathiMovies);
+    fetchData(`/api/trending/tv/day`, moviesActions.setTrendingTvShows);
     fetchMoviesByGenre(28, moviesActions.setActionMovies);
     fetchMoviesByGenre(16, moviesActions.setAnimationMovies);
     fetchMoviesByGenre(9648, moviesActions.setMysteryMovies);
@@ -247,7 +255,10 @@ const Browse = () => {
                     </svg>
                   </div>
                   <div className="relative z-30 mx-5 max-h-[50vh] max-w-fit overflow-hidden hover:scale-110 hover:cursor-pointer max-sm:max-h-[25vh]">
-                    <Poster movie={trendingMovies[index]} movieId={trendingMovies[index].id} />
+                    <Poster
+                      movie={trendingMovies[index]}
+                      movieId={trendingMovies[index].id}
+                    />
                   </div>
                 </>
               ) : (

@@ -6,16 +6,20 @@ import SkeletonLoader from "../utils/SkeletonLoader";
 import { encrypt } from "./CryptoUtils";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { tmdbInstance } from "./axios";
 import { db } from "../firebase-config";
 import { collection, getDocs } from "firebase/firestore";
 
-const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) => {
+const MoviesCarousel = ({
+  movie = {},
+  isFirebaseMovie = false,
+  type = "movie",
+}) => {
   const [open, setOpen] = useState(false);
   const handleClose = () => setOpen(false);
   const [isLoaded, setIsLoaded] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [firebaseMovies, setFirebaseMovies] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [currentType, setCurrentType] = useState(type);
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -24,13 +28,12 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
   const navigate = useNavigate();
 
   useEffect(() => {
-     if (isTvPage) {
-       setCurrentType("tv"); // Update the local state instead of modifying the prop
-     } else {
-       setCurrentType(type); // Default back to the original prop value if not "tv"
-     }
-  }, [location,isTvPage,type])
-  
+    if (isTvPage) {
+      setCurrentType("tv"); // Update the local state instead of modifying the prop
+    } else {
+      setCurrentType(type); // Default back to the original prop value if not "tv"
+    }
+  }, [location, isTvPage, type]);
 
   const handleOpen = (movie) => {
     setOpen(true);
@@ -84,10 +87,12 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
     }
   };
   const getVideoData = async (videoDataId) => {
-    const url = `/${currentType}/${videoDataId}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`;
+    const url = `/api/${currentType}/${videoDataId}/videos`;
     try {
-      const response = await tmdbInstance.get(url);
-      const videos = response.data.results;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const data = await response.json();
+      const videos = data.results;
       const trailer = videos.find(
         (video) => video.type === "Trailer" || video.type === "Teaser",
       );
@@ -119,9 +124,9 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
       const videoData = await getVideoData(movie.id);
       // console.log("Video Data:", videoData);
 
-        const videoUrl = isFirebaseMovie
-          ? movie.movieUrl
-          : videoData.vidSrcUrl || videoData.youtubeUrl;
+      const videoUrl = isFirebaseMovie
+        ? movie.movieUrl
+        : videoData.vidSrcUrl || videoData.youtubeUrl;
       // console.log("Video URL:", videoUrl);
 
       if (videoUrl) {
@@ -150,7 +155,7 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
         <div className="absolute top-0 z-10 flex h-full w-full transform flex-col justify-end gap-2 overflow-hidden opacity-0 transition-transform group-hover:-translate-y-4 group-hover:opacity-100">
           <div className="relative ml-2">
             <span className="h-fit w-fit select-none text-[1.1rem] font-bold text-white transition-opacity duration-[1200]">
-              {isFirebaseMovie?movie.name:(movie.title || movie.name)}
+              {isFirebaseMovie ? movie.name : movie.title || movie.name}
             </span>
             <span className="flex space-x-2">
               <button
@@ -182,7 +187,7 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
                 ? movie.thumbnailUrl
                 : `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
             }
-            alt={isFirebaseMovie?movie.name : (movie.title || movie.name)}
+            alt={isFirebaseMovie ? movie.name : movie.title || movie.name}
             loading="lazy"
             onLoad={() => setIsLoaded(true)} // Update isLoaded when the image is fully loaded
           />
@@ -190,7 +195,12 @@ const MoviesCarousel = ({ movie = {}, isFirebaseMovie = false ,type="movie"}) =>
       </div>
 
       {/* Use the MovieModal component */}
-      <MovieModal open={open} handleClose={handleClose} movie={movie} isFirebaseMovie={isFirebaseMovie}/>
+      <MovieModal
+        open={open}
+        handleClose={handleClose}
+        movie={movie}
+        isFirebaseMovie={isFirebaseMovie}
+      />
     </div>
   );
 };

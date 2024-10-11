@@ -6,9 +6,10 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import FilePondPluginFileValidateSize from "filepond-plugin-file-validate-size";
 import { db } from "../firebase-config"; // Import Firestore
-import { doc, setDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore"; // Import addDoc
 import Header from "./Header";
 import toast from "react-hot-toast";
+import { v4 as uuidv4 } from "uuid";
 
 // Register FilePond plugins
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
@@ -16,7 +17,6 @@ registerPlugin(FilePondPluginFileValidateType, FilePondPluginFileValidateSize);
 function MovieUpload() {
   const [movieDownloadURL, setMovieDownloadURL] = useState("");
   const [thumbnailDownloadURL, setThumbnailDownloadURL] = useState("");
-  const [movieId, setmovieId] = useState("");
   const [movieName, setMovieName] = useState("");
   const [movieOverview, setmovieOverview] = useState("");
   const [genres, setGenres] = useState("");
@@ -84,64 +84,50 @@ function MovieUpload() {
     },
   };
 
- const handleUpload = async () => {
-   if (
-     !movieDownloadURL ||
-     !thumbnailDownloadURL ||
-     !movieName ||
-     !genres ||
-     !movieId
-   ) {
-     alert(
-       "Please fill in all fields and upload both the movie and thumbnail.",
-     );
-     return;
-   }
+  const handleUpload = async () => {
+    if (!movieDownloadURL || !thumbnailDownloadURL || !movieName || !genres) {
+      alert(
+        "Please fill in all fields and upload both the movie and thumbnail.",
+      );
+      return;
+    }
 
-   try {
-     // Reference to the document with the specified ID
-     const docRef = doc(db, "UPLOADS", movieId); // Use the movieId from the input field
+    try {
+      // Reference to the collection
+      const uploadsRef = collection(db, "UPLOADS");
+      const uniqueId = uuidv4();
 
-     // Set the document with the specified ID
-     await setDoc(docRef, {
-       id: movieId,
-       name: movieName,
-       overview: movieOverview,
-       genres: genres.split(",").map((genre) => genre.trim()), // Convert comma-separated genres to array
-       movieUrl: movieDownloadURL,
-       thumbnailUrl: thumbnailDownloadURL,
-     });
+      // Add a new document with an auto-generated ID
+      await addDoc(uploadsRef, {
+        id: uniqueId,
+        name: movieName,
+        overview: movieOverview,
+        genres: genres.split(",").map((genre) => genre.trim()), // Convert comma-separated genres to array
+        movieUrl: movieDownloadURL,
+        thumbnailUrl: thumbnailDownloadURL,
+      });
 
-     console.log("Document written with ID: ", docRef.id);
-     toast.success("Movie uploaded successfully", {
-       duration: 4000,
-     });
+      toast.success("Movie uploaded successfully", {
+        duration: 4000,
+      });
 
-     // Reset fields
-     setmovieId(""); // Reset movieId field
-     setMovieName(""); // Reset movieName field
-     setmovieOverview(""); // Reset movieOverview field
-     setGenres(""); // Reset genres field
-     setMovieDownloadURL(""); // Reset movieDownloadURL field
-     setThumbnailDownloadURL(""); // Reset thumbnailDownloadURL field
-   } catch (e) {
-     console.error("Error adding document: ", e);
-   }
- };
+      // Reset fields
+      setMovieName(""); // Reset movieName field
+      setmovieOverview(""); // Reset movieOverview field
+      setGenres(""); // Reset genres field
+      setMovieDownloadURL(""); // Reset movieDownloadURL field
+      setThumbnailDownloadURL(""); // Reset thumbnailDownloadURL field
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+
   return (
     <div className="upload-form noScrollBar absolute top-0 z-0 min-h-screen w-screen overflow-x-hidden overflow-y-scroll bg-black bg-opacity-90">
       <Header />
       <div className="relative top-52 flex max-h-[50vh] w-screen items-start justify-center font-medium text-white">
         <div className="flex h-[40vh] w-[50vh] flex-col justify-center gap-5">
           <h2>Upload Your Movie</h2>
-          {/* Movie ID Input */}
-          <input
-            type="text"
-            placeholder="Movie ID"
-            value={movieId}
-            onChange={(e) => setmovieId(e.target.value)}
-            className="rounded bg-gray-900 p-2 ring-red-800 focus:ring-2"
-          />
 
           {/* Movie Name Input */}
           <input

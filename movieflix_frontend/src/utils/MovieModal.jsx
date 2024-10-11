@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
@@ -27,8 +28,6 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { requests } from "./Requests";
-import { omdbInstance, tmdbInstance } from "./axios";
 import { genreMapping } from "./GenreMapping";
 import MoviesCarousel from "./MoviesCarousel";
 import imdb_logo from "../assets/images/imdb_logo.png";
@@ -90,18 +89,30 @@ const MovieModal = ({
   }, [isFirebaseMovie]);
 
   const getOmdbData = async (title, year) => {
-    const url = requests.fetchOmdbData(title, year);
+    const url = `/api/omdb?title=${encodeURIComponent(title)}&year=${encodeURIComponent(
+      year,
+    )}`;
     try {
-      const response = await omdbInstance.get(url);
-      if (response.data) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      // console.log("Movie Modal data : ", data);
+      if (data) {
         // Return the full response data along with formatted fields
-        return {
-          ...response.data, // Spread the entire data object
-          omdbruntime: handleRuntime(response.data.Runtime) || "N/A",
-          imdbRating: response.data.imdbRating || "N/A", // Set default for imdbRating
-          omdbGenres: separateGenres(response.data.Genre) || "N/A", // Format and set default for genres
-          omdbYear: response.data.Year || "N/A", // Set default for Year
+        const results = {
+          ...data, // Spread the entire data object
+          omdbruntime: handleRuntime(data.Runtime) || "N/A",
+          imdbRating: data.imdbRating || "N/A", // Set default for imdbRating
+          omdbGenres: separateGenres(data.Genre) || "N/A", // Format and set default for genres
+          omdbYear: data.Year || "N/A", // Set default for Year}
         };
+        // console.log("Movie modal results : ", results);
+        return results;
       }
     } catch (error) {
       console.error("Error fetching OMDB data: ", error.message);
@@ -138,35 +149,31 @@ const MovieModal = ({
   };
   const fetchData = async (movie) => {
     try {
-      setVideoData({});
-      // console.log("movie : ", movie);
-      // const endpoint =
-      //   movie.media_type === "tv" || movie.media_type === "series"
-      //     ? requests.fetchTvShowById(movie.id)
-      //     : requests.fetchMovieById(movie.id);
+      setVideoData({}); // Clear video data before fetching new data
+
       const findEndpoint = () => {
         if (isTvPage) {
-          // console.log("Is Tv Page : ", isTvPage);
           if (
             movie.media_type === "tv" ||
             movie.media_type === "series" ||
+            movie.first_air_date !== undefined ||
             !movie.media_type
           ) {
-            const endpoint = requests.fetchTvShowById(movie.id);
-            // console.log("endpoint (tv page) : ", endpoint);
+            const endpoint = `/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
             return endpoint;
           }
         } else {
-          // console.log("Is Tv Page : ", isTvPage);
-          if (movie.media_type === "tv" || movie.media_type === "series") {
-            const endpoint = requests.fetchTvShowById(movie.id);
-            // console.log("endpoint (non-tv, tv media): ", endpoint);
+          if (
+            movie.media_type === "tv" ||
+            movie.media_type === "series" ||
+            movie.first_air_date !== undefined
+          ) {
+            const endpoint = `/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
             return endpoint;
           } else {
-            const endpoint = requests.fetchMovieById(movie.id);
-            // console.log("endpoint (non-tv, movie media): ", endpoint);
+            const endpoint = `/api/movie/${movie.id}`;
             searchParams.append("type", "movies");
             return endpoint;
           }
@@ -179,18 +186,29 @@ const MovieModal = ({
         console.error("No valid endpoint found");
         return;
       }
+
+      // Fetch TMDB and OMDB data concurrently
       const [tmdbResponse, omdbResponse] = await Promise.all([
-        tmdbInstance.get(endpoint),
+        fetch(endpoint),
         getOmdbData(
           movie.title || movie.name,
           movie.release_date || movie.first_air_date,
         ),
       ]);
 
-      if (tmdbResponse.data) {
-        await setVideoData({ ...tmdbResponse.data, ...omdbResponse });
-        // await console.log("video data : ", videoData);
-      }
+      // Parse the TMDB response as JSON
+      const tmdbData = await tmdbResponse.json();
+      // console.log("TMDB Data: ", tmdbData);
+      // console.log("OMDB Data: ", omdbResponse);
+
+      // Update the state with the combined data
+      setVideoData({
+        ...tmdbData,
+        ...omdbResponse,
+      });
+
+      // Log the updated video data (no need to await setState)
+      // console.log("Video data: ", { ...tmdbData, ...omdbResponse });
     } catch (error) {
       console.error("Error fetching movie data:", error);
     }
@@ -200,12 +218,22 @@ const MovieModal = ({
     try {
       setrecommendations({});
       const endpoint =
-        movie.media_type === "tv" || movie.media_type === "series"
-          ? requests.fetchTvShowRecommendations(movie.id)
-          : requests.fetchMovieRecommendations(movie.id);
-      const response = await tmdbInstance.get(endpoint);
-      if (Array.isArray(response.data.results)) {
-        const filteredRecommendations = response.data.results.filter(
+        movie.media_type === "tv" ||
+        movie.media_type === "series" ||
+        movie.first_air_date !== undefined
+          ? `/api/tv/${movie.id}/recommendations`
+          : `/api/movie/${movie.id}/recommendations`;
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        // Log the status code and the response text for debugging
+        const errorText = await response.text(); // Get the raw response text
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // Await the JSON parsing
+      console.log("Recommendations Data : ", data);
+      if (Array.isArray(data.results)) {
+        const filteredRecommendations = data.results.filter(
           (recommendation) =>
             recommendation.backdrop_path &&
             recommendation.backdrop_path.trim() !== "" &&
@@ -214,7 +242,7 @@ const MovieModal = ({
         setrecommendations(filteredRecommendations);
         // console.log("Recommendations Data : ", recommendations);
       } else {
-        console.error("Data is not an Array : ", response.data.results);
+        console.error("Data is not an Array : ", data);
       }
     } catch (error) {
       console.error("Error in recommendations : ", error);
@@ -352,14 +380,14 @@ const MovieModal = ({
     }
   };
 
-  const getVideoData = async (movieId) => {
-    // const url = isTvMedia
-    //   ? `/tv/${movieId}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`
-    //   : `/movie/${movieId}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`;
-    const url = `/${currentType}/${movieId}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`;
+  const getVideoData = async (videoDataId) => {
+    const url = `/api/${currentType}/${videoDataId}/videos`;
     try {
-      const response = await tmdbInstance.get(url);
-      const videos = response.data.results;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const data = await response.json();
+      const videos = data.results;
+      // console.log("Video Data:", videos);
       const trailer = videos.find(
         (video) => video.type === "Trailer" || video.type === "Teaser",
       );
@@ -369,11 +397,11 @@ const MovieModal = ({
           ? `${process.env.REACT_APP_YOUTUBE_BASE_URL}${videos[0].key}`
           : null;
 
-      const vidSrcUrl = `${process.env.REACT_APP_VIDSRC_BASE_URL}${movieId}`;
+      const vidSrcUrl = `${process.env.REACT_APP_VIDSRC_BASE_URL}${videoDataId}`;
       const validVidSrcUrl = await checkUrlStatus(vidSrcUrl);
       const validYoutubeUrl = await checkUrlStatus(youtubeUrl);
 
-      //  console.log("Video Data:", { validVidSrcUrl, validYoutubeUrl });
+      // console.log("Video Data:", { validVidSrcUrl, validYoutubeUrl });
 
       return {
         youtubeUrl: validYoutubeUrl,
@@ -388,7 +416,7 @@ const MovieModal = ({
   const handleVideoPlay = async (movie) => {
     try {
       const videoData = await getVideoData(movie.id);
-      console.log("Video Data:", videoData);
+      // console.log("Video Data:", videoData);
       const videoUrl = isFirebaseMovie
         ? movie.movieUrl
         : videoData.vidSrcUrl || videoData.youtubeUrl;
@@ -669,7 +697,9 @@ const MovieModal = ({
                   className="mb-4"
                 >
                   {isFirebaseMovie
-                    ? movie?.overview
+                    ? movie?.overview ||
+                      movie.Plot ||
+                      "No description available."
                     : videoData.overview || "No description available."}
                 </Typography>
               </div>

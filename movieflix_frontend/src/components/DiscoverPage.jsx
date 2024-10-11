@@ -3,8 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Header from "./Header";
 import MoviesCarousel from "../utils/MoviesCarousel";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { requests } from "../utils/Requests.js";
-import { tmdbInstance } from "../utils/axios";
 import { debounce } from "lodash";
 import { genreMapping } from "../utils/GenreMapping.js";
 import Error from "./error.jsx";
@@ -66,45 +64,70 @@ const DiscoverPage = () => {
   const fetchData = async ({ pageParam = 1 }) => {
     try {
       let url;
+
+      // TV Shows Logic
       if (type.toLowerCase().trim() === "tv") {
         if (genreNumber) {
-          url = requests.fetchTvShowsByGenre(genreNumber, pageParam);
-          // console.log("fetch url : ", url);
+          url = `/api/tv?genre=${genreNumber}&page=${pageParam}`;
+          console.log("Fetching TV data with genre:", genreNumber, "URL:", url);
         } else if (query) {
-          url = requests.searchTvShows(query, pageParam);
+          url = `/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
+          console.log("Fetching TV data with query:", query, "URL:", url);
         } else {
-          // Handle other TV show cases, if needed
-          throw new Error("No genre provided for TV shows");
+          throw new Error("No genre or query provided for TV shows");
         }
       }
+
+      // Movies Logic
       if (
-        type.toLowerCase().trim() !== "tv" &&
-        (type.toLowerCase().trim() === "movies" ||
-          type.toLowerCase().trim() === "movie" ||
-          type === "")
+        type.toLowerCase().trim() === "movies" ||
+        type.toLowerCase().trim() === "movie" ||
+        type === ""
       ) {
         if (query) {
-          url = requests.searchMulti(query, pageParam);
+          url = `/api/search?query=${encodeURIComponent(query)}&page=${pageParam}`;
+          console.log("Fetching Movie data with query:", query, "URL:", url);
         } else if (genreNumber) {
-          url = requests.fetchMovieByGenre(genreNumber, pageParam);
+          url = `/api/movies?genre=${genreNumber}&page=${pageParam}`;
+          console.log(
+            "Fetching Movie data with genre:",
+            genreNumber,
+            "URL:",
+            url,
+          );
         } else if (queryMovies === "NowPlaying") {
-          url = requests.fetchNowPlaying(pageParam);
+          url = `/api/movie/now_playing/${pageParam}`;
+          console.log("Fetching Now Playing movies, URL:", url);
         } else if (queryMovies === "Trending") {
-          url = requests.fetchTrendingWeek(pageParam);
+          url = `/api/trending/movie/week/${pageParam}`;
+          console.log("Fetching Trending movies, URL:", url);
         } else if (queryMovies === "Indian") {
-          url = requests.fetchDiscoverIndianMovies(pageParam);
+          url = `/api/movie/indian/${pageParam}`;
+          console.log("Fetching Indian movies, URL:", url);
         } else if (queryMovies === "Marathi") {
-          url = requests.fetchMarathiMovies(pageParam);
+          url = `/api/movie/marathi/${pageParam}`;
+          console.log("Fetching Marathi movies, URL:", url);
         } else {
-          throw new Error("No query parameter provided");
+          throw new Error("No query or genre provided for Movies");
         }
       }
-      // console.log("final url is : ", url);
-      const response = await tmdbInstance.get(url);
-      // console.log("fetched data:", response.data.results);
-      return response.data.results;
+
+      if (!url) {
+        throw new Error("URL not properly constructed");
+      }
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error fetching data:", response.status, errorText);
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.results;
     } catch (error) {
-      console.error("Error fetching movies:", error);
+      console.error("Error fetching movies or TV shows:", error);
       throw error;
     }
   };
