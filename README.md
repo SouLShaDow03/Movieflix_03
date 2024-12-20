@@ -8,7 +8,6 @@ MovieFlix is a web application designed for movie enthusiasts to browse, search,
 - **Search Functionality**: Find movies by title, genre, or other criteria.
 - **User Authentication**: Sign up and log in to personalize your experience.
 - **Favorites List**: Save and manage a list of your favorite movies.
-- **Responsive Design**: Optimized for both desktop and mobile devices.
 
 ## Live Demo
 
