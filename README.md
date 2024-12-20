@@ -70,14 +70,20 @@ The application will be running at `http://localhost:3000/`.
 
 ## Screenshots
 
-### Homepage
-![Homepage](path/to/homepage-screenshot.png)
+### Sign In
+![Sign In Page](Screenshots/signIn_page.png)
 
-### Movie Details
-![Movie Details](path/to/movie-details-screenshot.png)
+### HomePage
+![Homepage](Screenshots/homepage.png)
 
-### Favorites
-![Favorites](path/to/favorites-screenshot.png)
+### Details Page
+![Modal](Screenshots/details_page.png)
+
+### Search Page
+![Search](Screenshots/search_page.png)
+
+### Upload Page
+![Uploads](Screenshots/upload_page.png)
 
 ## Contributing
 
