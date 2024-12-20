@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { decrypt } from "./CryptoUtils";
-import SkeletonLoader from "./SkeletonLoader";
+// import SkeletonLoader from "./SkeletonLoader";
 
 const VideoPage = () => {
   const location = useLocation();
@@ -27,13 +27,18 @@ const VideoPage = () => {
   return (
     <div className="relative flex h-screen w-screen items-center justify-center bg-black">
       <button
-        className="absolute right-4 top-4 z-50 text-lg text-white bg-black hover:bg-red-900 bg-opacity-35 rounded-full px-4 py-2 m-2"
+        className="absolute right-4 top-4 z-50 m-2 rounded-full bg-black bg-opacity-35 px-4 py-2 text-lg text-white hover:bg-red-900"
         onClick={() => navigate(-1)}
       >
         X
       </button>
       <div className="relative h-screen w-screen">
-        {!isLoaded && <SkeletonLoader height={true} width={true} />}
+        {/* {!isLoaded && <SkeletonLoader height={true} width={true} />} */}
+        {!isLoaded && (
+          <div className="absolute flex h-screen w-screen items-center justify-center bg-black">
+            <span className="loader"></span>
+          </div>
+        )}
         {videoUrl && videoUrl.includes("youtube") ? (
           <iframe
             src={getYouTubeEmbedUrl(videoUrl)}

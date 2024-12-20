@@ -171,7 +171,7 @@ const DiscoverPage = () => {
 
   if (error || !data || data.pages.flat().length === 0) {
     return (
-      <div className="absolute top-0 h-screen w-screen overflow-hidden bg-black bg-opacity-85">
+      <div className="relative top-0 h-fit w-fit overflow-hidden bg-black bg-opacity-85">
         <Header />
         {/* <Error /> */}
         {!query && (

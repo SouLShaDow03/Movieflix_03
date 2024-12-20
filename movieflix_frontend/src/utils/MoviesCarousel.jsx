@@ -37,6 +37,15 @@ const MoviesCarousel = ({
 
   const handleOpen = (movie) => {
     setOpen(true);
+    if (
+      movie.media_type === "tv" ||
+      movie.media_type === "series" ||
+      movie.first_air_date !== undefined
+    ) {
+      setCurrentType("tv");
+    } else {
+      setCurrentType("movie");
+    }
     console.log(movie.id);
     console.log("Movies : ", movie);
   };
@@ -52,7 +61,7 @@ const MoviesCarousel = ({
         }));
 
         setFirebaseMovies(moviesList);
-        console.log("Firebase movies:", moviesList);
+        // console.log("Firebase movies:", moviesList);
       } catch (error) {
         console.error("Error fetching Firebase movies:", error);
       }
@@ -64,19 +73,23 @@ const MoviesCarousel = ({
   }, [isFirebaseMovie]);
   const checkUrlStatus = async (url) => {
     try {
-      // Check if the URL is a YouTube URL and if it's empty or null
+      // If it's a YouTube URL, bypass the check and return it directly
       if (url.includes("youtube")) {
         if (!url || url.trim() === "") {
           console.error("YouTube URL is empty or null.");
           return null;
         }
-        // console.log("YouTube URL detected, bypassing fetch:", url);
         return url; // Bypass fetch for YouTube URLs
       }
 
-      const response = await fetch(url, { method: "HEAD" });
-      if (response.ok) {
-        return url;
+      // Call your server's proxy endpoint to check the URL status
+      const proxyUrl = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/check-url?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      const data = await response.json();
+
+      if (response.ok && data.validUrl) {
+        console.log("Valid URL:", data.validUrl);
+        return data.validUrl;
       } else {
         console.error(`URL check failed with status: ${response.status}`);
         return null;
@@ -86,6 +99,7 @@ const MoviesCarousel = ({
       return null;
     }
   };
+
   const getVideoData = async (videoDataId) => {
     const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/${currentType}/${videoDataId}/videos`;
     try {
@@ -102,7 +116,10 @@ const MoviesCarousel = ({
           ? `${process.env.REACT_APP_YOUTUBE_BASE_URL}${videos[0].key}`
           : null;
 
-      const vidSrcUrl = `${process.env.REACT_APP_VIDSRC_BASE_URL}${videoDataId}`;
+      const vidSrcUrl =
+        currentType === "tv"
+          ? `${process.env.REACT_APP_VIDSRC_TV_BASE_URL}${videoDataId}`
+          : `${process.env.REACT_APP_VIDSRC_MOVIE_BASE_URL}${videoDataId}`;
       const validVidSrcUrl = await checkUrlStatus(vidSrcUrl);
       const validYoutubeUrl = await checkUrlStatus(youtubeUrl);
 

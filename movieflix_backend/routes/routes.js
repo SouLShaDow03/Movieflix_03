@@ -1,6 +1,7 @@
 // src/routes/movieRoutes.js
 require("dotenv").config();
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
 
 // Import all controller functions as an object
@@ -38,5 +39,32 @@ router.get("/tv/:id/recommendations", controller.getTvShowRecommendations);
 router.get("/movie/:id/recommendations", controller.getMovieRecommendations);
 router.get("/movies", controller.getMovieByGenre);
 router.get("/tv", controller.getTvShowsByGenre);
+router.get("/genres", controller.getGenres);
+// Route to check URL status
+router.get("/check-url", async (req, res) => {
+	const { url } = req.query; // Extract URL from query params
+
+	if (!url) {
+		return res.status(400).json({ error: "URL is required" });
+	}
+
+	try {
+		// Check if the URL is YouTube, bypass the fetch if so
+		if (url.includes("youtube")) {
+			return res.json({ validUrl: url });
+		}
+
+		// Make a HEAD request to check the URL status
+		const response = await axios.head(url);
+		if (response.status === 200) {
+			return res.json({ validUrl: url });
+		} else {
+			return res.status(response.status).json({ error: "URL check failed" });
+		}
+	} catch (error) {
+		console.error("Error checking URL:", error.message);
+		return res.status(500).json({ error: "Error checking URL" });
+	}
+});
 // Export the router
 module.exports = router; // Use CommonJS export

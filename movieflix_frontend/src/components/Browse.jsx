@@ -12,7 +12,6 @@ import { Mousewheel } from "swiper/modules";
 import "swiper/css";
 import { db } from "../firebase-config";
 import { collection, getDocs } from "firebase/firestore";
-
 const Browse = () => {
   const dispatch = useDispatch();
   const [firebaseMovies, setFirebaseMovies] = React.useState([]);

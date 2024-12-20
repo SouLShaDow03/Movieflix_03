@@ -69,12 +69,12 @@ const TvShows = () => {
     fetchMoviesByGenre(16, tvActions.setAnimation);
     fetchMoviesByGenre(35, tvActions.setComedy);
     fetchMoviesByGenre(80, tvActions.setCrime);
-    fetchMoviesByGenre(10751, tvActions.setKids);
+    fetchMoviesByGenre(10751, tvActions.setFamily);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
   
     return (
-      <div className="noScrollBar absolute top-0 h-screen w-screen overflow-x-hidden bg-black">
+      <div className="noScrollBar relative top-0 z-0 min-h-fit w-screen overflow-y-auto overflow-x-hidden bg-black">
         <Header />
         {/* <div className='relative top-20 flex items-center justify-center mx-auto text-white'>TvShows</div> */}
         <div className="relative top-20 mx-auto flex h-[70vh] w-[90vw] justify-center rounded-2xl shadow-lg shadow-red-400">
@@ -182,7 +182,7 @@ const TvShows = () => {
         <div className="relative top-20 z-20 mx-3 mt-8 h-fit w-screen">
           <div className="relative flex items-start justify-start gap-2 p-2">
             <span className="relative mx-3 h-fit w-fit text-[2.2rem] font-bold text-white">
-             Crime
+              Crime
             </span>
             <span className="relative pt-4 text-2xl">
               <Link to="/discover?genre=80&type=tv">
@@ -215,7 +215,7 @@ const TvShows = () => {
         <div className="relative top-20 z-20 mx-3 mt-8 h-fit w-screen">
           <div className="relative flex items-start justify-start gap-2 p-2">
             <span className="relative mx-3 h-fit w-fit text-[2.2rem] font-bold text-white">
-              Kids
+              Family
             </span>
             <span className="relative pt-4 text-2xl">
               <Link to="/discover?genre=10751&type=tv">

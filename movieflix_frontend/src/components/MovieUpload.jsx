@@ -86,7 +86,7 @@ function MovieUpload() {
 
   const handleUpload = async () => {
     if (!movieDownloadURL || !thumbnailDownloadURL || !movieName || !genres) {
-      alert(
+      toast.error(
         "Please fill in all fields and upload both the movie and thumbnail.",
       );
       return;

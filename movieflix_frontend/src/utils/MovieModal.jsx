@@ -55,6 +55,7 @@ const MovieModal = ({
   // eslint-disable-next-line no-unused-vars
   const [firebaseMovies, setFirebaseMovies] = useState([]);
   const isMyUploads = location.pathname.includes("/myuploads");
+  const [videoType, setVideoType] = useState("movie");
   // const isDiscover = location.pathname.includes("/discover");
   // const isTvMedia = (isTvPage || isDiscover) || movie.media_type === "tv";
 
@@ -77,7 +78,7 @@ const MovieModal = ({
         }));
 
         setFirebaseMovies(moviesList);
-        console.log("Firebase movies:", moviesList);
+        // console.log("Firebase movies:", moviesList);
       } catch (error) {
         console.error("Error fetching Firebase movies:", error);
       }
@@ -161,6 +162,7 @@ const MovieModal = ({
           ) {
             const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
+            setVideoType("tv");
             return endpoint;
           }
         } else {
@@ -171,10 +173,12 @@ const MovieModal = ({
           ) {
             const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/tv/${movie.id}`;
             searchParams.append("type", "tv");
+            setVideoType("tv");
             return endpoint;
           } else {
             const endpoint = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/movie/${movie.id}`;
             searchParams.append("type", "movies");
+            setVideoType("movie");
             return endpoint;
           }
         }
@@ -182,6 +186,7 @@ const MovieModal = ({
       };
 
       const endpoint = findEndpoint();
+      console.warn("Endpoint: ", endpoint);
       if (!endpoint) {
         console.error("No valid endpoint found");
         return;
@@ -357,19 +362,23 @@ const MovieModal = ({
 
   const checkUrlStatus = async (url) => {
     try {
-      // Check if the URL is a YouTube URL and if it's empty or null
+      // If it's a YouTube URL, bypass the check and return it directly
       if (url.includes("youtube")) {
         if (!url || url.trim() === "") {
           console.error("YouTube URL is empty or null.");
           return null;
         }
-        // console.log("YouTube URL detected, bypassing fetch:", url);
         return url; // Bypass fetch for YouTube URLs
       }
 
-      const response = await fetch(url, { method: "HEAD" });
-      if (response.ok) {
-        return url;
+      // Call your server's proxy endpoint to check the URL status
+      const proxyUrl = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/check-url?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      const data = await response.json();
+
+      if (response.ok && data.validUrl) {
+        console.log("Valid URL:", data.validUrl);
+        return data.validUrl;
       } else {
         console.error(`URL check failed with status: ${response.status}`);
         return null;
@@ -386,6 +395,7 @@ const MovieModal = ({
       const response = await fetch(url);
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
+      // console.warn("Video Data:", data);
       const videos = data.results;
       // console.log("Video Data:", videos);
       const trailer = videos.find(
@@ -397,11 +407,15 @@ const MovieModal = ({
           ? `${process.env.REACT_APP_YOUTUBE_BASE_URL}${videos[0].key}`
           : null;
 
-      const vidSrcUrl = `${process.env.REACT_APP_VIDSRC_BASE_URL}${videoDataId}`;
+      const vidSrcUrl =
+        videoType === "tv"
+          ? `${process.env.REACT_APP_VIDSRC_TV_BASE_URL}${videoDataId}`
+          : `${process.env.REACT_APP_VIDSRC_MOVIE_BASE_URL}${videoDataId}`;
+      console.warn("Video Data:", { vidSrcUrl, youtubeUrl });
       const validVidSrcUrl = await checkUrlStatus(vidSrcUrl);
       const validYoutubeUrl = await checkUrlStatus(youtubeUrl);
 
-      // console.log("Video Data:", { validVidSrcUrl, validYoutubeUrl });
+      console.log("Video Data:", { validVidSrcUrl, validYoutubeUrl });
 
       return {
         youtubeUrl: validYoutubeUrl,

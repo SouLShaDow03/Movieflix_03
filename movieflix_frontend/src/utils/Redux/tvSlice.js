@@ -23,10 +23,10 @@ const tvSlice = createSlice({
         setCrime(state, action) {
             state.Crime = action.payload;
         },
-        setKids(state, action) {
+        setFamily(state, action) {
             state.Kids = action.payload;
         },
     },
 });
-export const {setActionAndAdventure,setAnimation,setComedy,setCrime,setKids } = tvSlice.actions;
+export const {setActionAndAdventure,setAnimation,setComedy,setCrime,setFamily } = tvSlice.actions;
 export default tvSlice.reducer;

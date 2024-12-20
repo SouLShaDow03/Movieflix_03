@@ -163,16 +163,20 @@ const Login = () => {
       );
       const user = result.user;
       const userUid = user.uid;
-      if (rememberMe) {
-        Cookies.set("user", userUid, { expires: 7 });
-      } else {
-        Cookies.set("user", userUid); // Session Cookie
+      // Use getDoc to check if the user exists
+      const userDocRef = await getDoc(doc(db, "USERS", userUid));
+      if (userDocRef.exists()) {
+        if (rememberMe) {
+          Cookies.set("user", userUid, { expires: 7 });
+        } else {
+          Cookies.set("user", userUid); // Session Cookie
+        }
+        setIsAuthenticated(true);
+        toast.success("Signed in successfully", { duration: 2000 });
+        setEmail("");
+        setPassword("");
+        setTimeout(() => navigate("/browse"), 4000);
       }
-      setIsAuthenticated(true);
-      toast.success("Signed in successfully", { duration: 2000 });
-      setEmail("");
-      setPassword("");
-      setTimeout(() => navigate("/browse"), 4000);
     } catch (error) {
       console.error("Sign-in error:", error); // Log error details
       toast.error("Please Register your Email !!!", { duration: 4000 });

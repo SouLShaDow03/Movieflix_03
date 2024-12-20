@@ -65,7 +65,7 @@ const WatchList = () => {
           {error}
         </p>
       )}
-      {watchlist.length === 0 ? (
+      {watchlist.length === 0 && !error ? (
         <p className="relative left-6 top-20 z-10 ml-2 text-[38px] font-bold text-white">
           Add some movies to your watchlist :(
         </p>

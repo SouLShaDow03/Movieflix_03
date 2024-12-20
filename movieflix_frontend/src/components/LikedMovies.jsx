@@ -7,6 +7,7 @@ import Header from "./Header";
 const LikedMovies = () => {
   const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchLikedMovies = async () => {
     const auth = getAuth();
@@ -31,6 +32,7 @@ const LikedMovies = () => {
       }
     } catch (error) {
       console.error("Error fetching liked movies: ", error);
+      setError("Failed to load watchlist. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,12 @@ const LikedMovies = () => {
       <h2 className="relative left-6 top-20 z-10 ml-2 h-fit w-fit text-[38px] font-bold text-white">
         Liked Movies
       </h2>
-      {favourites.length === 0 ? (
+      {error && (
+        <p className="relative left-6 top-20 z-10 ml-2 text-[38px] font-bold text-red-500">
+          {error}
+        </p>
+      )}
+      {favourites.length === 0 && !error ? (
         <p className="relative left-6 top-20 z-10 ml-2 text-[38px] font-bold text-white">
           No liked movies found :(
         </p>

@@ -7,7 +7,7 @@ import { RiNotification3Line } from "react-icons/ri";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../utils/AuthContext";
-import { signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { firebaseAuth } from "../firebase-config";
 import { getAuth } from "firebase/auth";
 import pfp from "../assets/images/pfp.jpg";
@@ -17,6 +17,7 @@ import MovieGenresModal from "../utils/MovieGenresModal";
 import { useSearch } from "../utils/SearchContext"; // Import the useSearch hook
 
 const Header = () => {
+  const auth = getAuth();
   const { setIsAuthenticated, setUserProfile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,11 +38,12 @@ const Header = () => {
     closeSearchBar,
     toggleSearchBar,
     handleFocus,
-    handleBlur
+    handleBlur,
   } = useSearch();
   const [localQuery, setLocalQuery] = useState(searchQuery);
-  const [userName, setUserName] = useState(null);
-  const [profilePic, setProfilePic] = useState(null);
+  const [userName, setUserName] = useState("Guest");
+  const [profilePic, setProfilePic] = useState(pfp); // Set default profile picture
+  const [loading, setLoading] = useState(true); // Loading state to manage UI
   const searchBarRef = useRef(null);
   const intervalIdRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -66,37 +68,75 @@ const Header = () => {
     setLocalQuery(searchQuery); // Update local state when context state changes
   }, [searchQuery]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const viewportHeight = window.innerHeight * 0.15;
-      setScrollExceeded(scrollPosition > viewportHeight);
-    };
+useEffect(() => {
+  const handleScroll = () => {
+    const scrollPosition = window.scrollY;
+    const viewportHeight = window.innerHeight * 0.15;
+    const exceeded = scrollPosition > viewportHeight;
 
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
+    setScrollExceeded(exceeded);
+
+    // console.warn("scrollPosition:", scrollPosition);
+    // console.warn("viewportHeight:", viewportHeight);
+    // console.log("scrollExceeded:", exceeded);
+    // console.log("Page name : ", location.pathname);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  // Clean up event listener on unmount
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, [location.pathname]);
+
+  // useEffect(() => {
+  //   const fetchUserProfile = async () => {
+  //     const auth = getAuth();
+  //     const user = auth.currentUser;
+  //     console.log("is discover page : ",isDiscoverPage);
+  //     if (user) {
+  //       console.log("user : ", user.displayName);
+  //       setUserName(user.displayName);
+  //       console.log("pfp userName : ", userName);
+  //       setProfilePic(user.photoURL);
+  //       console.log("pfp : ", profilePic);
+  //       setUserProfile(user.photoURL);
+  //     } else {
+  //       setProfilePic(pfp);
+  //     }
+  //   };
+  //   fetchUserProfile();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      // console.log("is discover page : ",isDiscoverPage);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("Auth state changed: ", user); // Debugging: Check user object
+
       if (user) {
-        // console.log("user : ", user.displayName);
-        setUserName(user.displayName);
-        // console.log("pfp userName : ", userName);
-        setProfilePic(user.photoURL);
-        setUserProfile(user.photoURL);
+        console.log("User authenticated:", user.displayName, user.photoURL); // Debugging: User details
+        setUserName(user.displayName || "Guest");
+        setProfilePic(user.photoURL || pfp);
       } else {
+        console.log("User logged out or not authenticated."); // Debugging: No user
+        setUserName("Guest");
         setProfilePic(pfp);
       }
-    };
-    fetchUserProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+      setLoading(false); // Set loading to false once auth state change is handled
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [auth]);
+
+  // Debugging: Log userName and profilePic to see updates
+  // useEffect(() => {
+  //   console.log("User name updated:", userName);
+  //   console.log("Profile picture updated:", profilePic);
+  // }, [userName, profilePic]);
+
 
   useEffect(() => {
     const path = location.pathname;
@@ -155,9 +195,15 @@ const Header = () => {
     }
   };
 
+  
+  if (loading) {
+    return <div>Loading...</div>; // Display loading state while fetching user profile
+  }
+
   return (
     <div
       className={`z-50 flex w-screen items-center justify-between px-6 ${
+        scrollExceeded &&
         (isBrowse ||
           isDiscoverPage ||
           isTV ||
@@ -165,8 +211,7 @@ const Header = () => {
           isLikedPage ||
           isMovieUploads ||
           isSpecials ||
-          isMyUploads) &&
-        scrollExceeded
+          isMyUploads)
           ? "fixed top-0 rounded-lg bg-black bg-opacity-75"
           : "bg-transparent"
       } ${!isBrowse ? "absolute top-0 select-none bg-transparent" : ""}`}
@@ -218,12 +263,14 @@ const Header = () => {
             <Link className="hover:text-gray-500" to={`/tv`}>
               <button>TV Shows</button>
             </Link>
-            <button
-              className="hover:text-gray-500"
-              onClick={handleOpenGenresModal}
-            >
-              Categories
-            </button>
+            {!isDiscoverPage && (
+              <button
+                className="hover:text-gray-500"
+                onClick={handleOpenGenresModal}
+              >
+                Categories
+              </button>
+            )}
             <MovieGenresModal
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}

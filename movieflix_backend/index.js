@@ -12,6 +12,7 @@ const corsOptions = {
 		"http://localhost:3000",
 		"https://movieflix-03.web.app",
 		"https://postman-echo.com",
+		"https://vidsrc.in/",
 	], // Allow specific origins
 	methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow specific methods
 	credentials: true, // Allow cookies to be sent

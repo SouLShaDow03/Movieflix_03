@@ -288,6 +288,28 @@ const getVideoData = async (req, res) => {
 	}
 };
 
+const getGenres = async (req, res) => {
+	let { type } = req.query;
+	console.log("type", type);
+
+	// Determine the type based on the query parameter
+	if (!type || type === "movies") {
+		type = "movie"; // Set type to 'movie' if 'movies' or empty
+	} else if (type === "tv") {
+		type = "tv"; // Set type to 'tv' if specified as 'tv'
+	}
+
+	try {
+		const response = await tmdbInstance.get(
+			`/genre/${type}/list?api_key=${tmdbKey}&language=en-US`
+		);
+		res.json(response.data);
+	} catch (error) {
+		console.error("Error fetching genres:", error);
+		res.status(500).json({ error: "Error fetching genres" });
+	}
+};
+
 module.exports = {
 	getTrendingMoviesToday,
 	getTrendingMoviesWeek,
@@ -308,4 +330,5 @@ module.exports = {
 	getTvShowsByGenre,
 	searchMulti,
 	getVideoData,
+	getGenres,
 };

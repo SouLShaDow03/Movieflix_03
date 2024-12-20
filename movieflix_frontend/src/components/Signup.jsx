@@ -123,10 +123,10 @@ const Signup = () => {
 
       checkEmailVerified();
     } catch (error) {
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.code === "auth/email-already-in-use") {
         setEmail("");
         setPassword("");
-        toast.error("Email already registered !!!", { duration: 2000, });
+        toast.error("Email already registered !!!", { duration: 2000 });
         setTimeout(() => {
           const emailExists = toast(
             <div className="relative flex flex-row">
@@ -139,16 +139,15 @@ const Signup = () => {
               icon: infoIcon,
               duration: 2000,
               dismiss: true,
-              position:'bottom-right',
+              position: "bottom-right",
             },
           );
-        },2000)
+        }, 2000);
         setTimeout(() => {
-              navigate("/login");
-            }, 5000);
+          navigate("/login");
+        }, 5000);
         return;
-      }
-      else {
+      } else {
         toast.error(formatFirebaseError(error));
       }
       setEmail("");

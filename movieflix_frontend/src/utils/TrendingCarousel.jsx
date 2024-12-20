@@ -60,9 +60,11 @@ const TrendingCarousel = ({ type = "movie" }) => {
   };
 
   const getVideoData = async (type, itemId) => {
+    // console.warn("Trending Video Data:", type, itemId);
     const url = `${process.env.REACT_APP_VERCEL_BACKEND_API_URL}/api/${type}/${itemId}/videos`; // Change this to your backend API endpoint
     try {
       const response = await fetch(url);
+      // console.warn("Trending Video Data:", response);
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
 
@@ -125,7 +127,7 @@ const TrendingCarousel = ({ type = "movie" }) => {
                 item.release_date || item.first_air_date,
               );
               const omdbData = await getOmdbData(item.title || item.name, year);
-              const videoData = await getVideoData(item.id); // Await videoData here
+              const videoData = await getVideoData(type,item.id); // Await videoData here
               return { ...item, omdbData, videoData };
             }),
           );

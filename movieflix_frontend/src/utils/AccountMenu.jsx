@@ -14,6 +14,7 @@ import Logout from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 const AccountMenu = ({ profilePic, logOut, userName }) => {
   const { isAdmin } = useAuth();
@@ -36,33 +37,37 @@ const AccountMenu = ({ profilePic, logOut, userName }) => {
   };
   const handleUnlike = () => {
     setIsLiked((prev) => !prev);
-  }
+  };
   const handleWatchList = () => {
     setTimeout(() => {
       navigate("/watchlist");
     }, 100);
   };
 
- const handleUploads = () => {
-   if (!isAdmin) {
-     toast.error("You are not an admin to make uploads."); // Show error toast
-     return; // Exit the function if not admin
-   }
+  const handleUploads = () => {
+    if (!isAdmin) {
+      toast.error("You are not an admin to make uploads."); // Show error toast
+      return; // Exit the function if not admin
+    }
 
-   setTimeout(() => {
-     navigate("/upload"); // Navigate only if admin
-   }, 100);
+    setTimeout(() => {
+      navigate("/upload"); // Navigate only if admin
+    }, 100);
   };
-   const handleMyUploads = () => {
-     if (!isAdmin) {
-       toast.error("You are not an admin to make uploads."); // Show error toast
-       return; // Exit the function if not admin
-     }
+  const handleMyUploads = () => {
+    if (!isAdmin) {
+      toast.error("You are not an admin to make uploads."); // Show error toast
+      return; // Exit the function if not admin
+    }
 
-     setTimeout(() => {
-       navigate("/myuploads"); // Navigate only if admin
-     }, 100);
-   };
+    setTimeout(() => {
+      navigate("/myuploads"); // Navigate only if admin
+    }, 100);
+  };
+
+  useEffect(() => {
+    console.warn("ProfilePic in account menu : ", profilePic);
+  }, [profilePic]);
   return (
     <React.Fragment>
       <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
@@ -77,7 +82,11 @@ const AccountMenu = ({ profilePic, logOut, userName }) => {
             aria-haspopup="true"
             aria-expanded={open ? "true" : undefined}
           >
-            <Avatar sx={{ width: 30, height: 30 }} src={profilePic}></Avatar>
+            <Avatar
+              key={profilePic}
+              sx={{ width: 30, height: 30 }}
+              src={profilePic}
+            ></Avatar>
           </IconButton>
         </Tooltip>
       </Box>

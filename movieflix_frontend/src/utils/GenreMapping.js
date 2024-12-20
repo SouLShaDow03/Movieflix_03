@@ -26,4 +26,5 @@ export const genreMapping = {
   10766: "Soap",
   10767: "Talk",
   10768: "War & Politics",
+  10762: "Kids",
 };
